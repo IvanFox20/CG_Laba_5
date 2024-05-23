@@ -19,8 +19,8 @@ namespace CG_Laba_5
         Brush noFillArea = new SolidBrush(Color.Gray);
         float divX;
         float divY;
-        const int countX = 400;
-        const int countY = 400;
+        const int countX = 20;
+        const int countY = 20;
         float centerX, centerY;
         int xPartition;
         List<List<int>> area = new List<List<int>>();
@@ -34,7 +34,7 @@ namespace CG_Laba_5
             divY = pictureBoxHeight / countY;
             centerX = pictureBoxWidth / 2;
             centerY = pictureBoxHeight / 2;
-            xPartition = 160;
+            xPartition = 13;
         }
 
         private void DrawCurrentIteration(List<Point> points)
@@ -56,12 +56,14 @@ namespace CG_Laba_5
                 }
             }
 
-            for (int i = 0; i < points.Count - 1; i++)
+            // Отрисовка всех линий и заполнение их в area
+            for (int i = 0; i < points.Count; i++)
             {
                 int x1 = points[i].X;
                 int y1 = points[i].Y;
-                int x2 = points[i + 1].X;
-                int y2 = points[i + 1].Y;
+                int x2 = points[(i + 1) % points.Count].X; // Обработка замкнутого контура
+                int y2 = points[(i + 1) % points.Count].Y;
+
                 List<Point> bresenhamPoints = BresenhamLine(x1, y1, x2, y2);
                 foreach (Point point in bresenhamPoints)
                 {
@@ -70,6 +72,7 @@ namespace CG_Laba_5
                 FillSquare(Brushes.Black, Convert(bresenhamPoints));
             }
 
+            // Добавление черной перегородки
             for (int i = 0; i < countY; i++)
             {
                 area[xPartition][i] = 1; // Черная перегородка
@@ -80,26 +83,26 @@ namespace CG_Laba_5
             Point lastPoint = Point.Empty;
             bool last = false;
 
-            for (int i = 0; i < points.Count - 1; i++)
+            for (int i = 0; i < points.Count; i++)
             {
-                if (i == points.Count - 2) last = true;
+                if (i == points.Count - 1) last = true;
                 Point startPoint = points[i];
-                Point endPoint = points[i + 1];
+                Point endPoint = points[(i + 1) % points.Count]; // Обработка замкнутого контура
                 if (startPoint.Y == endPoint.Y) continue;
-
                 Filling(startPoint, endPoint, lastPoint, last, points);
                 lastPoint = startPoint;
-
-                await Task.Delay(1);
+                await Task.Delay(300);
                 DrawCurrentIteration(points);
             }
 
-            for (int i = 0; i < points.Count - 1; i++)
+            // Повторная отрисовка всех линий для финализации изображения
+            for (int i = 0; i < points.Count; i++)
             {
                 int x1 = points[i].X;
                 int y1 = points[i].Y;
-                int x2 = points[i + 1].X;
-                int y2 = points[i + 1].Y;
+                int x2 = points[(i + 1) % points.Count].X; // Обработка замкнутого контура
+                int y2 = points[(i + 1) % points.Count].Y;
+
                 List<Point> bresenhamPoints = BresenhamLine(x1, y1, x2, y2);
                 foreach (Point point in bresenhamPoints)
                 {
@@ -110,6 +113,7 @@ namespace CG_Laba_5
 
             OutputFile1("1");
         }
+
 
         private List<PointF> Convert(List<PointF> point)
         {
@@ -141,12 +145,15 @@ namespace CG_Laba_5
         private void Filling(Point p1, Point p2, Point p1Last, bool last, List<Point> points)
         {
             List<Point> bresenhamLine = BresenhamLine(p1.X, p1.Y, p2.X, p2.Y);
+
+            // Если направление поменялось
             if (p1Last != Point.Empty && Math.Sign(p1.Y - p1Last.Y) != Math.Sign(p1.Y - p2.Y))
             {
                 bresenhamLine = bresenhamLine.Where(p => p.Y != p1.Y).ToList();
             }
 
-            if(last)
+            // Если это последний сегмент, обрабатываем его правильно
+            if (last)
             {
                 Point secondFig = new Point(points[1].X, points[1].Y);
                 if (p1Last != Point.Empty && Math.Sign(p2.Y - secondFig.Y) != Math.Sign(p2.Y - p1.Y))
@@ -158,6 +165,7 @@ namespace CG_Laba_5
             List<Point> leftPoints = new List<Point>();
             List<Point> rightPoints = new List<Point>();
 
+            // Разделяем точки на левые и правые относительно перегородки
             foreach (Point point in bresenhamLine)
             {
                 if (point.X < xPartition)
@@ -169,8 +177,10 @@ namespace CG_Laba_5
                     rightPoints.Add(point);
                 }
             }
+
             Point lastPoint = Point.Empty;
 
+            // Заполнение левой части
             for (int i = 0; i < leftPoints.Count; i++)
             {
                 if (lastPoint != Point.Empty && lastPoint.Y == leftPoints[i].Y) continue;
@@ -178,12 +188,13 @@ namespace CG_Laba_5
                 {
                     InvertPixel(leftPoints[i].X, leftPoints[i].Y);
                     Point tmp = leftPoints[i];
-                    leftPoints[i] = new Point(tmp.X+1,tmp.Y);
+                    leftPoints[i] = new Point(tmp.X + 1, tmp.Y);
                 }
                 lastPoint = leftPoints[i];
             }
             lastPoint = Point.Empty;
 
+            // Заполнение правой части
             for (int i = 0; i < rightPoints.Count; i++)
             {
                 if (lastPoint != Point.Empty && lastPoint.Y == rightPoints[i].Y) continue;
@@ -196,6 +207,7 @@ namespace CG_Laba_5
                 lastPoint = rightPoints[i];
             }
         }
+
 
         private void InvertPixel(int x, int y)
         {
@@ -222,7 +234,7 @@ namespace CG_Laba_5
             {
                 for (int i = 0; i < area.Count; i++)
                 {
-                    //await Task.Delay(30);
+                    //await Task.Delay(25);
                     if (area[i][j] == 1)
                     {
                         g.FillRectangle(Brushes.Black, (int)(divX + (int)(i * divX)), (int)((pictureBoxHeight - divY) - (int)(j * divY)), divX, divY);
