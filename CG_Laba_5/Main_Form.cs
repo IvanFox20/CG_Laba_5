@@ -19,8 +19,8 @@ namespace CG_Laba_5
         Brush noFillArea = new SolidBrush(Color.Gray);
         float divX;
         float divY;
-        const int countX = 40;
-        const int countY = 40;
+        const int countX = 400;
+        const int countY = 400;
         float centerX, centerY;
         int xPartition;
         List<List<int>> area = new List<List<int>>();
@@ -34,7 +34,7 @@ namespace CG_Laba_5
             divY = pictureBoxHeight / countY;
             centerX = pictureBoxWidth / 2;
             centerY = pictureBoxHeight / 2;
-            xPartition = 17;
+            xPartition = 160;
         }
 
         private void DrawCurrentIteration(List<Point> points)
@@ -90,7 +90,7 @@ namespace CG_Laba_5
                 Filling(startPoint, endPoint, lastPoint, last, points);
                 lastPoint = startPoint;
 
-                await Task.Delay(25);
+                await Task.Delay(1);
                 DrawCurrentIteration(points);
             }
 
@@ -222,7 +222,7 @@ namespace CG_Laba_5
             {
                 for (int i = 0; i < area.Count; i++)
                 {
-                    //await Task.Delay(3);
+                    //await Task.Delay(30);
                     if (area[i][j] == 1)
                     {
                         g.FillRectangle(Brushes.Black, (int)(divX + (int)(i * divX)), (int)((pictureBoxHeight - divY) - (int)(j * divY)), divX, divY);
